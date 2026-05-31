@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="EN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SHEZI DATABASE</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* RESET & RESPONSIVE CORE */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f7f6;
+      text-align: center;
+      width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    header {
+      background-color: #00bcd4;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+    }
+
+    #menuToggle {
+      padding: 5px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      z-index: 9999;
+    }
+
+    #menuToggle div {
+      width: 25px;
+      height: 3px;
+      background-color: white;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    header h1 {
+      margin: 0;
+      color: white;
+      font-size: 20px;
+      flex-grow: 1;
+      text-align: center;
+      margin-right: 35px;
+    }
+
+    #sideMenu {
+      position: fixed;
+      top: 0;
+      left: -250px;
+      width: 250px;
+      height: 100%;
+      background-color: #333;
+      color: white;
+      padding: 20px;
+      transition: left 0.3s ease;
+      z-index: 1000;
+      text-align: left;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    #sideMenu h3 {
+      border-bottom: 1px solid #558;
+      padding-bottom: 10px;
+    }
+
+    #sideMenu p {
+      margin: 15px 0;
+      cursor: pointer;
+      color: #bbb;
+    }
+
+    #sideMenu p:hover {
+      color: white;
+    }
+
+    /* CONTAINER BOX AUTO-RESIZE LOGIC */
+    .container {
+      padding: 20px;
+      width: 92%;
+      max-width: 600px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      font-size: 22px;
+      color: #333;
+      word-wrap: break-word;
+    }
+
+    .description {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 20px;
+      word-wrap: break-word;
+    }
+
+    .button-main {
+      background-color: #e91e63;
+      padding: 10px 20px;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      max-width: 100%;
+    }
+
+    /* FULLY RESPONSIVE INPUT FIELD */
+    input[type="text"] {
+      width: 90%;
+      max-width: 500px;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      outline: none;
+      transition: border-color 0.3s;
+      display: inline-block;
+    }
+
+    input[type="text"]:focus {
+      border-color: #00bcd4;
+    }
+
+    .button-search {
+      background-color: #00bcd4;
+      border: none;
+      padding: 12px 40px;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s;
+      max-width: 100%;
+    }
+
+    .button-search:hover {
+      background-color: #0097a7;
+    }
+
+    /* RESULT POPUP AREA WITH PADDING AUTO-FIX */
+    #resultPopup {
+      display: none;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 25px;
+      text-align: left;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 100%;
+    }
+
+    #resultPopup h3 {
+      margin-top: 0;
+      color: #00bcd4;
+      border-bottom: 2px solid #00bcd4;
+      padding-bottom: 5px;
+      font-size: 18px;
+    }
+
+    #dynamicRecords {
+      margin-bottom: 15px;
+      width: 100%;
+    }
+
+    .record-block {
+      border-bottom: 1px solid #eee;
+      padding: 12px 0;
+      width: 100%;
+    }
+
+    .record-block:last-child {
+      border-bottom: none;
+    }
+
+    /* SMART SCREEN GRID LAYOUT FOR ROWS */
+    .result-row {
+      display: flex;
+      margin: 8px 0;
+      width: 100%;
+    }
+
+    .result-label {
+      width: 30%;
+      font-weight: bold;
+      color: #555;
+      font-size: 14px;
+    }
+
+    .result-value {
+      width: 70%;
+      color: #333;
+      font-size: 14px;
+      word-break: break-all;
+    }
+
+    /* ERROR ALERT SETUP */
+    .error-box {
+      color: #d32f2f;
+      background-color: #ffebee;
+      border-left: 5px solid #d32f2f;
+      padding: 12px;
+      margin: 10px 0;
+      font-weight: bold;
+      border-radius: 4px;
+      font-size: 14px;
+      word-wrap: break-word;
+    }
+
+    .close-btn {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* NEW INTERACTIVE SERVICES GRID STYLING */
+    .services-title {
+      margin-top: 35px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      color: #00bcd4;
+      font-weight: bold;
+      border-bottom: 1px dashed #00bcd4;
+      padding-bottom: 5px;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .service-box {
+      background-color: #ffffff;
+      border: 2px solid #00bcd4;
+      border-radius: 6px;
+      padding: 15px 10px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+    }
+
+    .service-box:hover {
+      background-color: #00bcd4;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 12px rgba(0, 188, 212, 0.3);
+    }
+
+    .service-box i {
+      font-size: 16px;
+    }
+
+    /* FIXED FLOATING SOCIAL NODES */
+    .floating-buttons {
+      position: fixed;
+      bottom: 20px;
+      right: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+    }
+
+    .floating-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background-color: #00bcd4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: transform 0.2s;
+      color: white;
+      font-size: 18px;
+      text-decoration: none;
+    }
+
+    .floating-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .floating-btn.fb { background-color: #3b5998; }
+    .floating-btn.wa { background-color: #25d366; }
+    .floating-btn.insta { background-color: #e1306c; }
+
+    /* MEDIA QUERIES FOR SMALL MOBILE INTERFACES */
+    @media screen and (max-width: 480px) {
+      header h1 {
+        font-size: 17px;
+        margin-right: 20px;
+      }
+      .container {
+        padding: 15px 10px;
+        margin: 15px auto;
+      }
+      h2 {
+        font-size: 18px;
+      }
+      input[type="text"] {
+        width: 100%;
+        font-size: 15px;
+      }
+      .button-search {
+        width: 100%;
+        padding: 12px 20px;
+      }
+      .services-grid {
+        grid-template-columns: 1fr; /* Stacks boxes on top of each other on mobile phones */
+        gap: 10px;
+      }
+      .result-row {
+        flex-direction: column;
+        margin: 10px 0;
+      }
+      .result-label {
+        width: 100%;
+        margin-bottom: 2px;
+        color: #00bcd4;
+      }
+      .result-value {
+        width: 100%;
+      }
+      .floating-buttons {
+        bottom: 15px;
+        right: 10px;
+      }
+      .floating-btn {
+        width: 42px;
+        height: 42px;
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="sideMenu">
+  <h3>SHEZI DATABASE</h3>
+  <p>HOME</p>
+  <p>PAID TOOLS AVAILABLE</p>
+  <p>CONTACT US</p>
+</div>
+
+<header>
+  <div id="menuToggle">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+  <h1>SHEZI DATABASE</h1>
+</header>
+
+<div class="container">
+  <h2>SHEZI DATABASE INFO SYSTEM</h2>
+  <p class="description">SIM DATA NADRA DATA FREE ACCESS WEB</p>
+
+  <button class="button-main">ALL PACKAGES CHECK INFO CLICK HERE</button><br>
+
+  <input type="text" placeholder="ENTER NUMBER OR CNIC" id="searchInput">
+  <br>
+  <button class="button-search" id="searchBtn">SEARCH</button><br>
+
+  <div id="resultPopup">
+    <h3 id="popupTitle">SEARCH RESULTS</h3>
+    <div id="dynamicRecords"></div>
+    <button class="close-btn" onclick="closePopup()">CLOSE</button>
+  </div>
+
+  <div class="services-title">OUR PREMIUM SERVICES (CONTACT US)</div>
+  <div class="services-grid">
+    <a href="https://wa.me/923154687144?text=HI%20SHEZI%20DATABASE,%20I%20NEED%20FRESH%20SIM%20DATA" target="_blank" class="service-box">
+      <i class="fas fa-sim-card"></i> FRESH SIM DATA
+    </a>
+    <a href="https://wa.me/923154687144?text=HI%20SHEZI%20DATABASE,%20I%20NEED%20NADRA%20PIC" target="_blank" class="service-box">
+      <i class="fas fa-id-card"></i> NADRA PIC
+    </a>
+    <a href="https://wa.me/923154687144?text=HI%20SHEZI%20DATABASE,%20I%20NEED%20COLOUR%20COPY" target="_blank" class="service-box">
+      <i class="fas fa-print"></i> COLOUR COPY
+    </a>
+    <a href="https://wa.me/923154687144?text=HI%20SHEZI%20DATABASE,%20I%20NEED%20PIN%20POINT%20LOCATION" target="_blank" class="service-box">
+      <i class="fas fa-map-marker-alt"></i> PIN POINT LOCATION
+    </a>
+    <a href="https://wa.me/923154687144?text=HI%20SHEZI%20DATABASE,%20I%20NEED%20CALL%20DATA%20RECORDS%20(CDR)" target="_blank" class="service-box">
+      <i class="fas fa-phone-alt"></i> CALL DATA RECORDS
+    </a>
+    <a href="https://wa.me/923154687144?text=HI%20SHEZI%20DATABASE,%20I%20NEED%20FAMILY%20TREE" target="_blank" class="service-box">
+      <i class="fas fa-users"></i> FAMILY TREE
+    </a>
+    <a href="https://wa.me/923154687144?text=HI%20SHEZI%20DATABASE,%20I%20NEED%20IMEI%20TRACKING" target="_blank" class="service-box" style="grid-column: span 2;">
+      <i class="fas fa-mobile-alt"></i> IMEI TRACKING
+    </a>
+  </div>
+
+</div>
+
+<div class="floating-buttons">
+  <a href="https://www.facebook.com/Sta.janan.09" target="_blank" class="floating-btn fb">
+    <i class="fab fa-facebook-f"></i>
+  </a>
+  <a href="https://wa.me/923154687144" target="_blank" class="floating-btn wa">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+  <a href="https://instagram.com/" target="_blank" class="floating-btn insta">
+    <i class="fab fa-instagram"></i>
+  </a>
+</div>
+
+<script>
+  const API_URL = 'https://famofc.site/api/database.php';
+  let menuOpen = false;
+
+  document.getElementById('menuToggle').addEventListener('click', function () {
+    const menu = document.getElementById('sideMenu');
+    const lines = document.querySelectorAll('#menuToggle div');
+    if (menuOpen) {
+      menu.style.left = '-250px';
+      lines[0].style.transform = 'rotate(0)';
+      lines[1].style.opacity = '1';
+      lines[2].style.transform = 'rotate(0)';
+      menuOpen = false;
+    } else {
+      menu.style.left = '0';
+      lines[0].style.transform = 'rotate(45deg) translateY(8px)';
+      lines[1].style.opacity = '0';
+      lines[2].style.transform = 'rotate(-45deg) translateY(-8px)';
+      menuOpen = true;
+    }
+  });
+
+  // REAL LIVE DATABASE FETCH LOGIC WITH ERROR INJECTION
+  document.getElementById('searchBtn').addEventListener('click', async function () {
+    const input = document.getElementById('searchInput').value.trim();
+    const btn = this;
+
+    if (!input) {
+      showErrorBox("ERROR: INPUT BUFFER CANNOT BE EMPTY. PLEASE ENTER A VALID NUMBER OR CNIC.");
+      return;
+    }
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SEARCHING...';
+    btn.disabled = true;
+    document.getElementById("resultPopup").style.display = "none";
+
+    try {
+      const response = await fetch(`${API_URL}?q=${encodeURIComponent(input)}`);
+      
+      if (!response.ok) {
+          throw new Error(`HTTP NETWORK ERROR! STATUS: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.data && data.data.records && data.data.records.length > 0) {
+          displayLiveResults(data.data.records);
+      } else {
+          showErrorBox(data.error ? data.error.toUpperCase() : "ERROR: NO RECORDS FOUND FOR THIS QUERY.");
+      }
+    } catch (error) {
+        console.error('Error:', error);
+        showErrorBox("ERROR: CONNECTION FAILURE. UNABLE TO REACH DATA NODE.");
+    } finally {
+        btn.innerHTML = 'SEARCH';
+        btn.disabled = false;
+    }
+  });
+
+  function displayLiveResults(records) {
+    const wrapper = document.getElementById("dynamicRecords");
+    const title = document.getElementById("popupTitle");
+    
+    title.innerText = "SEARCH RESULTS";
+    title.style.color = "#00bcd4";
+    title.style.borderBottomColor = "#00bcd4";
+    wrapper.innerHTML = ""; 
+
+    records.forEach((record) => {
+      const recordBlock = document.createElement("div");
+      recordBlock.className = "record-block";
+      
+      recordBlock.innerHTML = `
+        <div class="result-row"><div class="result-label">NUMBER:</div><div class="result-value">${escapeHtml(record.phone)}</div></div>
+        <div class="result-row"><div class="result-label">NAME:</div><div class="result-value">${escapeHtml(record.full_name).toUpperCase()}</div></div>
+        <div class="result-row"><div class="result-label">CNIC:</div><div class="result-value">${escapeHtml(record.cnic)}</div></div>
+        <div class="result-row"><div class="result-label">ADDRESS:</div><div class="result-value">${escapeHtml(record.address).toUpperCase()}</div></div>
+        <div class="result-row"><div class="result-label">OPERATOR:</div><div class="result-value">${escapeHtml(record.operator || 'N/A').toUpperCase()}</div></div>
+      `;
+      wrapper.appendChild(recordBlock);
+    });
+
+    document.getElementById("resultPopup").style.display = "block";
+  }
+
+  function showErrorBox(message) {
+    const wrapper = document.getElementById("dynamicRecords");
+    const title = document.getElementById("popupTitle");
+    
+    title.innerText = "SYSTEM ALERT";
+    title.style.color = "#d32f2f";
+    title.style.borderBottomColor = "#d32f2f";
+    
+    wrapper.innerHTML = `<div class="error-box"><i class="fas fa-exclamation-triangle"></i> ${escapeHtml(message).toUpperCase()}</div>`;
+    document.getElementById("resultPopup").style.display = "block";
+  }
+
+  function closePopup() {
+    document.getElementById("resultPopup").style.display = "none";
+  }
+
+  function escapeHtml(text) {
+      if (!text) return 'N/A';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+  }
+
+  document.getElementById('searchInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+          document.getElementById('searchBtn').click();
+      }
+  });
+</script>
+
+</body>
+</html>
